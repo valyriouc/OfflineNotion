@@ -9,8 +9,8 @@ namespace UploadClient;
 enum PB : byte
 {
     ENQ = 0x05, // Anfrage/Start,
-    ETX = 0x03, // Ende der Nachricht
-    US = 0x1F, // Einheitentrenner/Blocktrenner
+    RS = 0x1E, // Header starting
+    US = 0x1F, // Header/body separator 
 }
 
 /// <summary>
@@ -102,13 +102,13 @@ internal class PMessage
         foreach (PHeader header in Headers)
         {
             header.Write(stream);
+            stream.WriteByte((byte)PB.RS);
         }
 
         stream.WriteByte((byte)PB.US);
         byte[] body = Encoding.UTF8.GetBytes(Body);
+        stream.Write(BitConverter.GetBytes(body.Length));
         stream.Write(body);
-
-        stream.WriteByte((byte)PB.ETX);
 
         stream.Flush();
     }
@@ -128,9 +128,34 @@ internal class PMessage
             throw new Exception("Not a valid operation");
         }
 
-        while(true)
+        List<PHeader> headers = new();
+        while (true)
         {
-            PHeader pheader = 
+            PB header = (PB)stream.ReadByte();  
+            if (header != PB.RS)
+            {
+                break;
+            }
+
+            PHeader tmp = PHeader.Read(stream);
+            headers.Add(tmp);
+
+            PB ending = (PB)stream.ReadByte();
+
+            if (ending != PB.US)
+            {
+                break;
+            }
         }
+
+        byte[] lenByte = new byte[4];
+        stream.ReadExactly(lenByte);
+
+        int length = BitConverter.ToInt32(lenByte);
+
+        byte[] buffer = new byte[length];
+        stream.ReadExactly(buffer);
+
+        return new PMessage(operation, headers, Encoding.UTF8.GetString(buffer));
     }
 }
