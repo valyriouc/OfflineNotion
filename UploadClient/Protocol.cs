@@ -6,7 +6,7 @@ namespace UploadClient;
 /// <summary>
 /// Byte ordering
 /// </summary>
-enum PB : byte
+public enum PB : byte
 {
     ENQ = 0x05, // Anfrage/Start,
     RS = 0x1E, // Header starting
@@ -16,14 +16,14 @@ enum PB : byte
 /// <summary>
 /// Protocol operation
 /// </summary>
-enum POP : byte
+public enum POP : byte
 {
     UPLOAD,
     DOWNLOAD
 }
 
 // ENQ operation *length+header US body ETX 
-struct PHeader
+public struct PHeader
 {
     public string Key { get; init; }
 
@@ -70,7 +70,7 @@ struct PHeader
     }
 }
 
-internal class PMessage
+public class PMessage
 {
     public POP Operation { get; init; }
 
@@ -101,8 +101,8 @@ internal class PMessage
 
         foreach (PHeader header in Headers)
         {
-            header.Write(stream);
             stream.WriteByte((byte)PB.RS);
+            header.Write(stream);
         }
 
         stream.WriteByte((byte)PB.US);
@@ -132,7 +132,7 @@ internal class PMessage
         while (true)
         {
             PB header = (PB)stream.ReadByte();  
-            if (header != PB.RS)
+            if (header == PB.US)
             {
                 break;
             }
@@ -140,12 +140,6 @@ internal class PMessage
             PHeader tmp = PHeader.Read(stream);
             headers.Add(tmp);
 
-            PB ending = (PB)stream.ReadByte();
-
-            if (ending != PB.US)
-            {
-                break;
-            }
         }
 
         byte[] lenByte = new byte[4];
