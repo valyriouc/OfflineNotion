@@ -94,7 +94,7 @@ public class PMessage
         Body = body;
     }
 
-    public void Write(Stream stream)
+    public void Write(Stream stream)    
     {
         stream.WriteByte((byte)PB.ENQ);
         stream.WriteByte((byte)Operation);
@@ -104,7 +104,6 @@ public class PMessage
             stream.WriteByte((byte)PB.RS);
             header.Write(stream);
         }
-
         stream.WriteByte((byte)PB.US);
         byte[] body = Encoding.UTF8.GetBytes(Body);
         stream.Write(BitConverter.GetBytes(body.Length));
