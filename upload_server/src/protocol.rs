@@ -95,4 +95,52 @@ impl PMessage {
 
         stream.flush();
     }
+
+}
+
+mod Tests {
+
+    use std::io::{Read, Write};
+
+    use crate::*;
+
+    struct MemoryStream {
+        buffer: Vec<u8>,
+        w_pos: i32,
+        r_pos: i32,
+    }
+
+    impl Read for MemoryStream {
+        fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+            todo!()
+        }
+    }
+
+    impl Write for MemoryStream {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            let mut tmp = buf.to_vec();
+            self.buffer.append(&mut tmp);
+            self.w_pos += tmp.len() as i32;
+            Ok((tmp.len()))
+        }
+    
+        fn write_all(&mut self, buf: &[u8]) -> std::io::Result<()> {
+            self.write(buf);
+            Ok(())
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            todo!()
+        }
+    }
+
+    #[test]
+    fn test_writing_headers() {
+        let payload = PHeader {
+            key: String::from("h1"),
+            value: String::from("v1")
+        };
+
+        
+    }
 }
